@@ -4,14 +4,12 @@ const list = document.getElementById('locked-urls');
 const importFile = document.getElementById('import-file');
 const status = document.getElementById('status');
 
-async function loadLockedUrls() {
-  const { lockedUrls = [] } = await chrome.storage.local.get('lockedUrls');
-  return lockedUrls;
-}
+const loadLocks = () => chrome.storage.local.get({ closedSlots: [], lockedUrls: [] });
 
 async function render() {
-  const lockedUrls = await loadLockedUrls();
-  list.replaceChildren(...lockedUrls.map((url) => Object.assign(document.createElement('li'), { textContent: url })));
+  const { closedSlots, lockedUrls } = await loadLocks();
+  const label = (url, index) => (closedSlots.includes(index) ? `${url} (closed, reopens on reset)` : url);
+  list.replaceChildren(...lockedUrls.map((url, index) => Object.assign(document.createElement('li'), { textContent: label(url, index) })));
   document.getElementById('no-locks').hidden = lockedUrls.length > 0;
 }
 
@@ -24,7 +22,7 @@ function parseExport(text) {
 }
 
 document.getElementById('export').addEventListener('click', async () => {
-  const lockedUrls = await loadLockedUrls();
+  const { lockedUrls } = await loadLocks();
   const json = `${JSON.stringify({ lockedUrls }, null, 2)}\n`;
   const link = Object.assign(document.createElement('a'), {
     download: EXPORT_FILENAME,
@@ -52,7 +50,7 @@ importFile.addEventListener('change', async () => {
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.lockedUrls) render();
+  if (area === 'local' && (changes.lockedUrls || changes.closedSlots)) render();
 });
 
 render();
