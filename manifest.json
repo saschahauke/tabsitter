@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Pinned Tab Lock",
-  "version": "1.3.0",
-  "description": "Locks each pinned-tab position to a URL and sends the tabs back whenever they are restored.",
+  "name": "Tabsitter",
+  "version": "1.4.0",
+  "description": "Babysits your pinned tabs: browse freely, and each one is back on its home URL whenever Chrome restores them.",
   "permissions": [
     "contextMenus",
     "storage",
@@ -12,7 +12,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Pinned Tab Lock"
+    "default_title": "Tabsitter"
   },
   "options_ui": {
     "open_in_tab": true,

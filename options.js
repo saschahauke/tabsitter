@@ -1,35 +1,37 @@
-const EXPORT_FILENAME = 'pinned-tab-lock.json';
+const EXPORT_FILENAME = 'tabsitter.json';
 
-const list = document.getElementById('locked-urls');
+const list = document.getElementById('homes');
 const importFile = document.getElementById('import-file');
 const status = document.getElementById('status');
 
-const loadLocks = () => chrome.storage.local.get({ closedSlots: [], lockedUrls: [] });
+const loadHomes = () => chrome.storage.local.get({ closedSlots: [], homeUrls: [] });
 
 async function render() {
-  const { closedSlots, lockedUrls } = await loadLocks();
-  const label = (url, index) => (closedSlots.includes(index) ? `${url} (closed, reopens on reset)` : url);
-  list.replaceChildren(...lockedUrls.map((url, index) => Object.assign(document.createElement('li'), { textContent: label(url, index) })));
-  document.getElementById('no-locks').hidden = lockedUrls.length > 0;
+  const { closedSlots, homeUrls } = await loadHomes();
+  const label = (url, index) => (closedSlots.includes(index) ? `${url} (closed until the tabs are sent home)` : url);
+  list.replaceChildren(...homeUrls.map((url, index) => Object.assign(document.createElement('li'), { textContent: label(url, index) })));
+  document.getElementById('no-homes').hidden = homeUrls.length > 0;
 }
 
+// Pinned Tab Lock exported the homes as lockedUrls.
 function parseExport(text) {
-  const lockedUrls = JSON.parse(text)?.lockedUrls;
-  if (!Array.isArray(lockedUrls) || !lockedUrls.every((url) => typeof url === 'string' && url)) {
-    throw new Error('expected {"lockedUrls": ["https://…", …]}');
+  const parsed = JSON.parse(text);
+  const homeUrls = parsed?.homeUrls ?? parsed?.lockedUrls;
+  if (!Array.isArray(homeUrls) || !homeUrls.every((url) => typeof url === 'string' && url)) {
+    throw new Error('expected {"homeUrls": ["https://…", …]}');
   }
-  return lockedUrls;
+  return homeUrls;
 }
 
 document.getElementById('export').addEventListener('click', async () => {
-  const { lockedUrls } = await loadLocks();
-  const json = `${JSON.stringify({ lockedUrls }, null, 2)}\n`;
+  const { homeUrls } = await loadHomes();
+  const json = `${JSON.stringify({ homeUrls }, null, 2)}\n`;
   const link = Object.assign(document.createElement('a'), {
     download: EXPORT_FILENAME,
     href: `data:application/json;charset=utf-8,${encodeURIComponent(json)}`,
   });
   link.click();
-  status.textContent = `Exported ${lockedUrls.length} locked URLs.`;
+  status.textContent = `Exported ${homeUrls.length} homes.`;
 });
 
 document.getElementById('import').addEventListener('click', () => importFile.click());
@@ -39,18 +41,18 @@ importFile.addEventListener('change', async () => {
   importFile.value = '';
   if (!file) return;
   try {
-    const lockedUrls = parseExport(await file.text());
-    const question = `Open the ${lockedUrls.length} URLs in ${file.name} as new pinned tabs? Your current pinned tabs stay as they are.`;
+    const homeUrls = parseExport(await file.text());
+    const question = `Open the ${homeUrls.length} URLs in ${file.name} as new pinned tabs? Your current pinned tabs stay as they are.`;
     if (!confirm(question)) return;
-    await chrome.runtime.sendMessage({ type: 'import', lockedUrls });
-    status.textContent = `Added ${lockedUrls.length} pinned tabs from ${file.name}.`;
+    await chrome.runtime.sendMessage({ homeUrls, type: 'import' });
+    status.textContent = `Added ${homeUrls.length} pinned tabs from ${file.name}.`;
   } catch (error) {
     status.textContent = `Import failed: ${error.message}`;
   }
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && (changes.lockedUrls || changes.closedSlots)) render();
+  if (area === 'local' && (changes.homeUrls || changes.closedSlots)) render();
 });
 
 render();
