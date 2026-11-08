@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Pinned Tab Lock",
+  "version": "1.2.0",
+  "description": "Locks each pinned-tab position to a URL and sends the tabs back whenever they are restored.",
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "tabs"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Pinned Tab Lock"
+  },
+  "options_ui": {
+    "open_in_tab": true,
+    "page": "options.html"
+  }
+}

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pinned Tab Lock</title>
+    <style>
+      body { font: 14px/1.5 system-ui, sans-serif; margin: 2rem auto; max-width: 48rem; padding: 0 1rem; }
+      li { overflow-wrap: anywhere; padding: 0.15rem 0; }
+      button { font: inherit; margin-right: 0.5rem; padding: 0.3rem 0.9rem; }
+      #status { color: #555; min-height: 1.5em; }
+    </style>
+  </head>
+  <body>
+    <h1>Pinned Tab Lock</h1>
+    <p>Locked URLs, first pinned tab first:</p>
+    <ol id="locked-urls"></ol>
+    <p id="no-locks" hidden>No locked URLs yet.</p>
+    <button id="export">Export…</button>
+    <button id="import">Import…</button>
+    <input id="import-file" type="file" accept=".json,application/json" hidden />
+    <p id="status" role="status"></p>
+    <script src="options.js"></script>
+  </body>
+</html>
